@@ -24,8 +24,8 @@ export class ReservationService {
         {
             id: 2,
             userId: 2,
-            restaurantId: 1,
-            tableId: 2,
+            restaurantId: 2,
+            tableId: 8,
             reservationDate: '2026-04-21',
             slotHour: 17,
             status: 'ACTIVE',

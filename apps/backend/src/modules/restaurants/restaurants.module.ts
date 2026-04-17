@@ -6,4 +6,4 @@ import { RestaurantsService } from './restaurants.service';
   providers: [RestaurantsService],
   exports: [RestaurantsService]
 })
-export class RestaurantsModule {}
+export class RestaurantsModule { }

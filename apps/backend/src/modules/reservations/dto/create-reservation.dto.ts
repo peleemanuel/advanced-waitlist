@@ -1,23 +1,25 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsBoolean, IsDate, IsNotEmpty, IsNumber } from 'class-validator';
 
 export class CreateReservationDto {
-    @IsNumber()
-    @IsNotEmpty()
-    restaurantId!: number;
+  @IsNumber()
+  @IsNotEmpty()
+  restaurantId!: number;
 
-    @IsDate()
-    @IsNotEmpty()
-    @Type(() => Date)
-    reservationDate!: Date;
+  @IsNumber()
+  @IsNotEmpty()
+  tableId!: number;
 
-    @IsDate()
-    @IsNotEmpty()
-    @Type(() => Date)
-    startTime!: Date;
+  @IsDate()
+  @IsNotEmpty()
+  @Type(() => Date)
+  reservationDate!: Date;
 
+  @IsDate()
+  @IsNotEmpty()
+  slotHour!: number;
 
-    @IsNumber()
-    @IsNotEmpty()
-    partySize!: number;
+  @IsBoolean()
+  @IsNotEmpty()
+  status!: boolean;
 }

@@ -1,0 +1,26 @@
+{
+  "flags": {
+    "advanced-waitlist-ui": {
+      "state": "ENABLED",
+      "variants": {
+        "on": true,
+        "off": false
+      },
+      "defaultVariant": "off",
+      "targeting": {
+        "if": [
+          {
+            "==": [
+              {
+                "var": "segment"
+              },
+              "beta"
+            ]
+          },
+          "on",
+          "off"
+        ]
+      }
+    }
+  }
+}

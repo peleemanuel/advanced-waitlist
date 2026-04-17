@@ -1,4 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
+import { FeatureFlagsService } from "./feature-flags.service";
+import { FeatureFlagsController } from "./feature-flags.controller";
 
-@Module({})
-export class FeatureFlagsModule {}
+@Module({
+    controllers: [FeatureFlagsController],
+    providers: [FeatureFlagsService],
+    exports: [FeatureFlagsService],
+})
+export class FeatureFlagsModule { }

@@ -1,8 +1,11 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { OpenFeature } from "@openfeature/server-sdk";
+import { FlagdProvider } from "@openfeature/flagd-provider";
 
 async function bootstrap() {
+  await OpenFeature.setProviderAndWait(new FlagdProvider());
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
@@ -16,7 +19,6 @@ async function bootstrap() {
       transform: true,
     }),
   );
-
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

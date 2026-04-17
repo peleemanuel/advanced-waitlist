@@ -1,5 +1,4 @@
-import type { Restaurant } from '../types/domain';
-import type { HourAvailability } from '../types/domain';
+import type { Hour, HourAvailability, Restaurant } from '../types/domain';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -24,6 +23,35 @@ export async function getTableAvailability(
 
     if (!response.ok) {
         throw new Error('Failed to fetch table availability');
+    }
+
+    return response.json();
+}
+
+export type CreateReservationPayload = {
+    userId: number;
+    restaurantId: number;
+    tableId: number;
+    reservationDate: string;
+    slotHour: Hour;
+};
+
+export async function createReservation(
+    payload: CreateReservationPayload,
+) {
+    const response = await fetch(`${API_BASE_URL}/reservations`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => null);
+        const message =
+            errorBody?.message ?? 'Failed to create reservation';
+        throw new Error(message);
     }
 
     return response.json();

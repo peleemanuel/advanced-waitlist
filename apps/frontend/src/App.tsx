@@ -7,10 +7,12 @@ import { UserSelector } from "./components/UserSelector";
 import { MOCK_USERS } from "./mock-users";
 import {
   createReservation,
+  getAdvancedWaitlistUiFlag,
   getRestaurants,
   getTableAvailability,
 } from "./services/api";
 import type { Hour, HourAvailability, Restaurant, User } from "./types/domain";
+
 
 function App() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -26,6 +28,8 @@ function App() {
 
   const [message, setMessage] = useState<string | null>(null);
   const [bookingInProgress, setBookingInProgress] = useState(false);
+
+  const [canSeeAdvancedWaitlist, setCanSeeAdvancedWaitlist] = useState(false);
 
   async function loadAvailability(
     restaurantId: number,
@@ -72,11 +76,31 @@ function App() {
     fetchAvailability();
   }, [selectedRestaurantId, selectedTableId, selectedDate]);
 
-  const selectedRestaurant =
-    restaurants.find((restaurant) => restaurant.id === selectedRestaurantId) ?? null;
-
   const selectedUser: User =
     MOCK_USERS.find((user) => user.id === selectedUserId) ?? MOCK_USERS[0];
+
+  useEffect(() => {
+    async function loadFeatureFlags() {
+      try {
+        setError(null);
+
+        const enabled = await getAdvancedWaitlistUiFlag(
+          selectedUser.id,
+          selectedUser.segment,
+        );
+
+        setCanSeeAdvancedWaitlist(enabled);
+      } catch (err) {
+        console.error("Error fetching feature flag:", err);
+        setCanSeeAdvancedWaitlist(false);
+      }
+    }
+
+    loadFeatureFlags();
+  }, [selectedUser.id, selectedUser.segment]);
+
+  const selectedRestaurant =
+    restaurants.find((restaurant) => restaurant.id === selectedRestaurantId) ?? null;
 
   function handleSelectRestaurant(restaurantId: number) {
     setSelectedRestaurantId(restaurantId);
@@ -84,6 +108,12 @@ function App() {
     setAvailability(null);
     setMessage(null);
     setError(null);
+  }
+
+  function handleJoinWaitlist(hour: Hour) {
+    setMessage(
+      `Advanced waitlist UI is enabled. User ${selectedUser.name} wants to join waitlist for ${selectedDate} at ${hour}:00`,
+    );
   }
 
   async function handleSelectSlot(hour: Hour) {
@@ -143,6 +173,11 @@ function App() {
       </div>
 
       <div style={{ marginBottom: "16px" }}>
+        Advanced waitlist UI enabled:{" "}
+        <strong>{canSeeAdvancedWaitlist ? "yes" : "no"}</strong>
+      </div>
+
+      <div style={{ marginBottom: "16px" }}>
         <label>
           Selected date:{" "}
           <input
@@ -186,7 +221,9 @@ function App() {
 
         <AvailabilityGrid
           availability={availability}
+          canSeeAdvancedWaitlist={canSeeAdvancedWaitlist}
           onSelectSlot={handleSelectSlot}
+          onJoinWaitlist={handleJoinWaitlist}
         />
       </div>
     </div>

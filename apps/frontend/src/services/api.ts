@@ -56,3 +56,19 @@ export async function createReservation(
 
     return response.json();
 }
+
+export async function getAdvancedWaitlistUiFlag(
+    userId: number,
+    segment: string,
+): Promise<boolean> {
+    const response = await fetch(
+        `${API_BASE_URL}/feature-flags/advanced-waitlist-ui?userId=${userId}&segment=${segment}`,
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch advanced waitlist flag");
+    }
+
+    const data: { flag: string; enabled: boolean } = await response.json();
+    return data.enabled;
+}

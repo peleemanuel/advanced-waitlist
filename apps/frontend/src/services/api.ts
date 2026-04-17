@@ -72,3 +72,37 @@ export async function getAdvancedWaitlistUiFlag(
     const data: { flag: string; enabled: boolean } = await response.json();
     return data.enabled;
 }
+
+export type CreateWaitlistEntryPayload = {
+    userId: number;
+    restaurantId: number;
+    tableId: number;
+    reservationDate: string;
+    slotHour: Hour;
+};
+
+export async function createWaitlistEntry(
+    payload: CreateWaitlistEntryPayload,
+) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/waitlist`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => null);
+            const message =
+                errorBody?.message ?? "Failed to create waitlist entry";
+            throw new Error(message);
+        }
+
+        return response.json();
+    } catch (err) {
+        console.error("Error in createWaitlistEntry:", err);
+        throw new Error("Network error while creating waitlist entry");
+    }
+}

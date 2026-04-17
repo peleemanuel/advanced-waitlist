@@ -10,6 +10,7 @@ import {
   getAdvancedWaitlistUiFlag,
   getRestaurants,
   getTableAvailability,
+  createWaitlistEntry,
 } from "./services/api";
 import type { Hour, HourAvailability, Restaurant, User } from "./types/domain";
 
@@ -110,10 +111,36 @@ function App() {
     setError(null);
   }
 
-  function handleJoinWaitlist(hour: Hour) {
-    setMessage(
-      `Advanced waitlist UI is enabled. User ${selectedUser.name} wants to join waitlist for ${selectedDate} at ${hour}:00`,
-    );
+  async function handleJoinWaitlist(hour: Hour) {
+    if (!selectedRestaurantId || !selectedTableId) {
+      return;
+    }
+
+    try {
+      setBookingInProgress(true);
+      setMessage(null);
+      setError(null);
+
+      await createWaitlistEntry({
+        userId: selectedUser.id,
+        restaurantId: selectedRestaurantId,
+        tableId: selectedTableId,
+        reservationDate: selectedDate,
+        slotHour: hour,
+      });
+
+      setMessage(
+        `${selectedUser.name} joined waitlist for ${selectedDate} at ${hour}:00`,
+      );
+    } catch (err) {
+      if (err instanceof Error) {
+        setMessage(err.message);
+      } else {
+        setMessage("Could not join waitlist");
+      }
+    } finally {
+      setBookingInProgress(false);
+    }
   }
 
   async function handleSelectSlot(hour: Hour) {

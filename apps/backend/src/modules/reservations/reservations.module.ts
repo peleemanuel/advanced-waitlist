@@ -7,6 +7,7 @@ import { ReservationsAvailabilityController } from './reservations-availability.
 @Module({
   imports: [RestaurantsModule],
   controllers: [ReservationsController, ReservationsAvailabilityController],
-  providers: [ReservationService]
+  providers: [ReservationService],
+  exports: [ReservationService]
 })
 export class ReservationsModule { }

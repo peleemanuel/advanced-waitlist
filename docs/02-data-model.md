@@ -19,12 +19,9 @@
 
 3. **Table**
    - `id`
-   - `restaurantId`
-   - `tableNumber`
+   - `name`
    - `capacity`
-   - `isActive`
-
-   <br>
+     <br>
 
 4. **Reservation**
    - `id`
@@ -32,26 +29,19 @@
    - `restaurantId`
    - `tableId`
    - `reservationDate`
-   - `startTime`
-   - `endTime`
-   - `partySize`
-   - `status` - Active/Cancelled, maybe Completed in future implementations
-   - `createdAt`
-
-    <br>
+   - `slotHour`
+   - `status`
+     <br>
 
 5. **WaitlistEntry**
    - `id`
    - `userId`
    - `restaurantId`
-   - `requestedDate`
-   - `requestedStartTime`
-   - `requestedEndTime`
-   - `partySize`
+   - `tableId`
+   - `reservationDate`
+   - `slotHour`
    - `status`
-   - `createdAt`
-
-    <br>
+     <br>
 
 ---
 

@@ -41,17 +41,15 @@ export class ReservationService {
             throw new NotFoundException('Table not found for restaurant');
         }
 
-        const activeReservations = this.restaurantsService.findActiveReservationsForTableOnDate(
-            createReservationDto.tableId,
-            createReservationDto.reservationDate,
-            this.reservations,
-        );
-
-        const slotTaken = activeReservations.some(
-            (reservation) =>
+        const slotTaken = this.reservations.some((reservation) => {
+            return (
                 reservation.restaurantId === createReservationDto.restaurantId &&
-                reservation.slotHour === createReservationDto.slotHour,
-        );
+                reservation.tableId === createReservationDto.tableId &&
+                reservation.reservationDate === createReservationDto.reservationDate &&
+                reservation.slotHour === createReservationDto.slotHour &&
+                reservation.status === 'ACTIVE'
+            );
+        });
 
         if (slotTaken) {
             throw new BadRequestException('Requested slot is not available');

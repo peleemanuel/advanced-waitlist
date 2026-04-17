@@ -1,25 +1,26 @@
-import { Type } from 'class-transformer';
-import { IsBoolean, IsDate, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsIn, IsInt, IsNotEmpty, IsString, Matches } from 'class-validator';
+import type { Hour } from '../../shared/types/domain.types';
 
 export class CreateReservationDto {
-  @IsNumber()
+  @IsInt()
+  @IsNotEmpty()
+  userId!: number;
+
+  @IsInt()
   @IsNotEmpty()
   restaurantId!: number;
 
-  @IsNumber()
+  @IsInt()
   @IsNotEmpty()
   tableId!: number;
 
-  @IsDate()
+  @IsString()
   @IsNotEmpty()
-  @Type(() => Date)
-  reservationDate!: Date;
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  reservationDate!: string;
 
-  @IsDate()
+  @IsInt()
   @IsNotEmpty()
-  slotHour!: number;
-
-  @IsBoolean()
-  @IsNotEmpty()
-  status!: boolean;
+  @IsIn([10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
+  slotHour!: Hour;
 }

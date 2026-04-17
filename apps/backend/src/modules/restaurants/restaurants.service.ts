@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
-import { Reservation, Restaurant, Table } from '../shared/types/domain.types';
+import { Restaurant, Table } from '../shared/types/domain.types';
 
 @Injectable()
 export class RestaurantsService {
@@ -82,27 +82,4 @@ export class RestaurantsService {
       capacity: this.randomCapacity(),
     }));
   }
-
-  findActiveReservationsForTableOnDate(
-    tableId: number,
-    date: string,
-    reservations: Reservation[] = [],
-  ) {
-    const tableExists = this.restaurants.some((restaurant) =>
-      restaurant.tables.some((table) => table.id === tableId),
-    );
-
-    if (!tableExists) {
-      throw new NotFoundException('Table not found');
-    }
-
-    return reservations.filter(
-      (reservation) =>
-        reservation.tableId === tableId &&
-        reservation.reservationDate === date &&
-        reservation.status === 'ACTIVE',
-    );
-  }
-
-
 }

@@ -1,13 +1,15 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { RestaurantsService } from '../restaurants/restaurants.service';
-import { Reservation } from '../shared/types/domain.types';
+import { Hour, HourAvailability, Reservation } from '../shared/types/domain.types';
 
 @Injectable()
 export class ReservationService {
     constructor(
         private readonly restaurantsService: RestaurantsService
     ) { }
+
+    private readonly openingHours: Hour[] = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 
     private reservations: Reservation[] = [
         {
@@ -31,25 +33,15 @@ export class ReservationService {
     ];
 
     create(createReservationDto: CreateReservationDto) {
-        const restaurant = this.restaurantsService.findCertainRestaurant(createReservationDto.restaurantId);
-
-        const tableExists = restaurant.tables.some(
-            (table) => table.id === createReservationDto.tableId,
+        const activeReservations = this.findActiveReservationsForTableOnDate(
+            createReservationDto.restaurantId,
+            createReservationDto.tableId,
+            createReservationDto.reservationDate,
         );
 
-        if (!tableExists) {
-            throw new NotFoundException('Table not found for restaurant');
-        }
-
-        const slotTaken = this.reservations.some((reservation) => {
-            return (
-                reservation.restaurantId === createReservationDto.restaurantId &&
-                reservation.tableId === createReservationDto.tableId &&
-                reservation.reservationDate === createReservationDto.reservationDate &&
-                reservation.slotHour === createReservationDto.slotHour &&
-                reservation.status === 'ACTIVE'
-            );
-        });
+        const slotTaken = activeReservations.some(
+            (reservation) => reservation.slotHour === createReservationDto.slotHour,
+        );
 
         if (slotTaken) {
             throw new BadRequestException('Requested slot is not available');
@@ -77,5 +69,59 @@ export class ReservationService {
         const found = this.findAll().find((reservation) => reservation.id === id);
         if (!found) throw new NotFoundException('Reservation not found');
         return found;
+    }
+
+    buildAvailabilityForTableOnDate(
+        restaurantId: number,
+        tableId: number,
+        reservationDate: string,
+    ): HourAvailability {
+        const availability = this.openingHours.reduce((acc, hour) => {
+            acc[hour] = true;
+            return acc;
+        }, {} as HourAvailability);
+
+        const activeReservations = this.findActiveReservationsForTableOnDate(
+            restaurantId,
+            tableId,
+            reservationDate,
+        );
+
+        activeReservations.forEach((reservation) => {
+            availability[reservation.slotHour] = false;
+        });
+
+        return availability;
+    }
+
+    isSlotAvailable(
+        restaurantId: number,
+        tableId: number,
+        reservationDate: string,
+        slotHour: Hour,
+    ): boolean {
+        const availability = this.buildAvailabilityForTableOnDate(
+            restaurantId,
+            tableId,
+            reservationDate,
+        );
+
+        return availability[slotHour];
+    }
+
+    private findActiveReservationsForTableOnDate(
+        restaurantId: number,
+        tableId: number,
+        reservationDate: string,
+    ): Reservation[] {
+        this.restaurantsService.findCertainTableInRestaurant(restaurantId, tableId);
+
+        return this.reservations.filter(
+            (reservation) =>
+                reservation.restaurantId === restaurantId &&
+                reservation.tableId === tableId &&
+                reservation.reservationDate === reservationDate &&
+                reservation.status === 'ACTIVE',
+        );
     }
 }

@@ -3,12 +3,14 @@ import "./App.css";
 import { AvailabilityGrid } from "./components/AvailabilityGrid";
 import { RestaurantList } from "./components/RestaurantList";
 import { TableList } from "./components/TableList";
+import { UserSelector } from "./components/UserSelector";
+import { MOCK_USERS } from "./mock-users";
 import {
   createReservation,
   getRestaurants,
   getTableAvailability,
 } from "./services/api";
-import type { Hour, HourAvailability, Restaurant } from "./types/domain";
+import type { Hour, HourAvailability, Restaurant, User } from "./types/domain";
 
 function App() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -16,6 +18,8 @@ function App() {
   const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState("2026-04-20");
   const [availability, setAvailability] = useState<HourAvailability | null>(null);
+
+  const [selectedUserId, setSelectedUserId] = useState<number>(MOCK_USERS[0].id);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +75,9 @@ function App() {
   const selectedRestaurant =
     restaurants.find((restaurant) => restaurant.id === selectedRestaurantId) ?? null;
 
+  const selectedUser: User =
+    MOCK_USERS.find((user) => user.id === selectedUserId) ?? MOCK_USERS[0];
+
   function handleSelectRestaurant(restaurantId: number) {
     setSelectedRestaurantId(restaurantId);
     setSelectedTableId(null);
@@ -90,14 +97,16 @@ function App() {
       setError(null);
 
       await createReservation({
-        userId: 1,
+        userId: selectedUser.id,
         restaurantId: selectedRestaurantId,
         tableId: selectedTableId,
         reservationDate: selectedDate,
         slotHour: hour,
       });
 
-      setMessage(`Reservation created for ${selectedDate} at ${hour}:00`);
+      setMessage(
+        `Reservation created for ${selectedUser.name} on ${selectedDate} at ${hour}:00`,
+      );
 
       await loadAvailability(
         selectedRestaurantId,
@@ -122,6 +131,16 @@ function App() {
   return (
     <div style={{ padding: "24px" }}>
       <h1>Restaurant Booking Demo</h1>
+
+      <UserSelector
+        users={MOCK_USERS}
+        selectedUserId={selectedUserId}
+        onSelectUser={setSelectedUserId}
+      />
+
+      <div style={{ marginBottom: "16px" }}>
+        Active segment: <strong>{selectedUser.segment}</strong>
+      </div>
 
       <div style={{ marginBottom: "16px" }}>
         <label>

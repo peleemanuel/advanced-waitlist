@@ -13,3 +13,11 @@ export type Restaurant = {
 export type Hour = 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19;
 
 export type HourAvailability = Record<Hour, boolean>;
+
+export type UserSegment = "normal" | "beta";
+
+export type User = {
+    id: number;
+    name: string;
+    segment: UserSegment;
+};

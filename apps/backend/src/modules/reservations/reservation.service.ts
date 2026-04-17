@@ -1,8 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReservationDto } from './dto/create-reservation.dto';
+import { RestaurantsService } from '../restaurants/restaurants.service';
 
 @Injectable()
 export class ReservationService {
+    constructor(
+        private readonly restaurantsService: RestaurantsService
+    ){}
+
     private reservations = [
         {
             id: 1,
@@ -21,6 +26,12 @@ export class ReservationService {
     ];
 
     create(createReservationDto: CreateReservationDto) {
+        // check if restaurantId is valid
+        this.restaurantsService.findCertainRestaurant(createReservationDto.restaurantId);
+
+        // TODO: check if dates overlap
+
+
         const newReservation = {
             id: this.reservations.length + 1,
             ...createReservationDto,

@@ -1,4 +1,4 @@
-import type { Hour, HourAvailability, Restaurant } from '../types/domain';
+import type { Hour, HourAvailability, Restaurant, WaitlistEntry } from '../types/domain';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -105,4 +105,16 @@ export async function createWaitlistEntry(
         console.error("Error in createWaitlistEntry:", err);
         throw new Error("Network error while creating waitlist entry");
     }
+}
+
+export async function getMyWaitlistEntries(
+    userId: number,
+): Promise<WaitlistEntry[]> {
+    const response = await fetch(`${API_BASE_URL}/waitlist/my?userId=${userId}`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch waitlist entries");
+    }
+
+    return response.json();
 }

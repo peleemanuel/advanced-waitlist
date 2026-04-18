@@ -28,7 +28,7 @@ export function TableList({
               <button
                 onClick={() => onSelectTable(table.id)}
                 style={{
-                  fontWeight: selectedTableId === table.id ? 'bold' : 'normal',
+                  fontWeight: selectedTableId === table.id ? 'bold' : 'normal'
                 }}
               >
                 Table {table.tableNumber} - capacity {table.capacity}

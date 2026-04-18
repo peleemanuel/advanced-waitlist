@@ -34,12 +34,14 @@ export function AvailabilityGrid({
                                 onClick={() => onSelectSlot(hour)}
                                 style={{
                                     padding: "12px",
-                                    minWidth: "90px",
+                                    minWidth: "122px",
+                                    minHeight: "102px",
                                     textAlign: "center",
                                     border: "1px solid #ccc",
                                     borderRadius: "8px",
                                     cursor: "pointer",
-                                    backgroundColor: "#c8f7c5",
+                                    backgroundColor: "#23e715",
+                                    fontWeight: "bold",
                                 }}
                             >
                                 {hour}:00
@@ -51,15 +53,15 @@ export function AvailabilityGrid({
                         <div
                             key={hour}
                             style={{
-                                padding: "12px",
+                                minHeight: "100px",
                                 minWidth: "120px",
                                 textAlign: "center",
                                 border: "1px solid #ccc",
                                 borderRadius: "8px",
-                                backgroundColor: "#f7c5c5",
+                                backgroundColor: "#fa0f0f",
                             }}
                         >
-                            <div>{hour}:00</div>
+                            <div style={{ color: "black", fontWeight: "bold", paddingTop: "12px" }}>{hour}:00</div>
 
                             {canSeeAdvancedWaitlist ? (
                                 <button
@@ -69,7 +71,7 @@ export function AvailabilityGrid({
                                     Join waitlist
                                 </button>
                             ) : (
-                                <div style={{ marginTop: "8px", fontSize: "12px" }}>
+                                <div style={{ marginTop: "8px", fontSize: "12px", color: "black" }}>
                                     Occupied
                                 </div>
                             )}

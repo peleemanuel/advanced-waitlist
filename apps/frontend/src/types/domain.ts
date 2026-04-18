@@ -21,3 +21,15 @@ export type User = {
     name: string;
     segment: UserSegment;
 };
+
+export type WaitlistStatus = "WAITING" | "PROMOTED" | "CANCELLED";
+
+export type WaitlistEntry = {
+    id: number;
+    userId: number;
+    restaurantId: number;
+    tableId: number;
+    reservationDate: string;
+    slotHour: Hour;
+    status: WaitlistStatus;
+};

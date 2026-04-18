@@ -11,9 +11,10 @@ import {
   getRestaurants,
   getTableAvailability,
   createWaitlistEntry,
+  getMyWaitlistEntries,
 } from "./services/api";
-import type { Hour, HourAvailability, Restaurant, User } from "./types/domain";
-
+import type { Hour, HourAvailability, Restaurant, User, WaitlistEntry } from "./types/domain";
+import { WaitlistPanel } from "./components/WaitlistPanel";
 
 function App() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -31,6 +32,8 @@ function App() {
   const [bookingInProgress, setBookingInProgress] = useState(false);
 
   const [canSeeAdvancedWaitlist, setCanSeeAdvancedWaitlist] = useState(false);
+
+  const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
 
   async function loadAvailability(
     restaurantId: number,
@@ -111,6 +114,11 @@ function App() {
     setError(null);
   }
 
+  async function loadMyWaitlistEntries(userId: number) {
+    const data = await getMyWaitlistEntries(userId);
+    setWaitlistEntries(data);
+  }
+
   async function handleJoinWaitlist(hour: Hour) {
     if (!selectedRestaurantId || !selectedTableId) {
       return;
@@ -132,6 +140,9 @@ function App() {
       setMessage(
         `${selectedUser.name} joined waitlist for ${selectedDate} at ${hour}:00`,
       );
+
+      await loadMyWaitlistEntries(selectedUser.id);
+
     } catch (err) {
       if (err instanceof Error) {
         setMessage(err.message);
@@ -214,6 +225,11 @@ function App() {
           />
         </label>
       </div>
+
+      {canSeeAdvancedWaitlist && (
+        <div style={{ marginTop: "32px" }}>
+          <WaitlistPanel entries={waitlistEntries} />
+        </div>)}
 
       {error && (
         <div style={{ marginBottom: "16px", color: "red" }}>

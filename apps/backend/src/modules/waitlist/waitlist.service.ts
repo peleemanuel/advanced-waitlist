@@ -1,15 +1,15 @@
-import { BadRequestException, Injectable, NotFoundException, } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException, forwardRef } from "@nestjs/common";
 import { CreateWaitlistEntryDto } from "./dto/create-waitlist-entry.dto";
 import { RestaurantsService } from "../restaurants/restaurants.service";
 import { WaitlistEntry } from "../shared/types/domain.types";
 import { ReservationService } from "../reservations/reservations.service";
-import { log } from "console";
 
 @Injectable()
 export class WaitlistService {
     constructor(
         private readonly restaurantsService: RestaurantsService,
-        private readonly reservationsService: ReservationService,
+        @Inject(forwardRef(() => ReservationService))
+        private readonly reservationService: ReservationService,
     ) { }
 
     private waitlistEntries: WaitlistEntry[] = [];
@@ -20,7 +20,7 @@ export class WaitlistService {
             createWaitlistEntryDto.tableId,
         );
 
-        const isSlotAvailable = this.reservationsService.isSlotAvailable(
+        const isSlotAvailable = this.reservationService.isSlotAvailable(
             createWaitlistEntryDto.restaurantId,
             createWaitlistEntryDto.tableId,
             createWaitlistEntryDto.reservationDate,
@@ -80,5 +80,30 @@ export class WaitlistService {
         }
 
         return found;
+    }
+
+    findFirstWaitingEntryForSlot(
+        restaurantId: number,
+        tableId: number,
+        reservationDate: string,
+        slotHour: number,
+    ) {
+        return (
+            this.waitlistEntries.find((entry) => {
+                return (
+                    entry.restaurantId === restaurantId &&
+                    entry.tableId === tableId &&
+                    entry.reservationDate === reservationDate &&
+                    entry.slotHour === slotHour &&
+                    entry.status === "WAITING"
+                );
+            }) ?? null
+        );
+    }
+
+    markPromoted(id: number) {
+        const entry = this.findCertainEntry(id);
+        entry.status = "PROMOTED";
+        return entry;
     }
 }

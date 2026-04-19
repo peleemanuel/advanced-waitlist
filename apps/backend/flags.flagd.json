@@ -21,6 +21,28 @@
           "off"
         ]
       }
+    },
+    "advanced-waitlist-auto-promote": {
+      "state": "ENABLED",
+      "variants": {
+        "on": true,
+        "off": false
+      },
+      "defaultVariant": "off",
+      "targeting": {
+        "if": [
+          {
+            "==": [
+              {
+                "var": "segment"
+              },
+              "beta"
+            ]
+          },
+          "on",
+          "off"
+        ]
+      }
     }
   }
 }

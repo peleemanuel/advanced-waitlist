@@ -1,12 +1,19 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException, BadRequestException, forwardRef } from '@nestjs/common';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { RestaurantsService } from '../restaurants/restaurants.service';
+import { FeatureFlagsService } from '../feature-flags/feature-flags.service';
+import { UsersService } from '../users/users.service';
+import { WaitlistService } from '../waitlist/waitlist.service';
 import { Hour, HourAvailability, Reservation } from '../shared/types/domain.types';
 
 @Injectable()
 export class ReservationService {
     constructor(
-        private readonly restaurantsService: RestaurantsService
+        private readonly restaurantsService: RestaurantsService,
+        @Inject(forwardRef(() => WaitlistService))
+        private readonly waitlistService: WaitlistService,
+        private readonly featureFlagsService: FeatureFlagsService,
+        private readonly usersService: UsersService,
     ) { }
 
     private readonly openingHours: Hour[] = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
@@ -24,8 +31,8 @@ export class ReservationService {
         {
             id: 2,
             userId: 2,
-            restaurantId: 2,
-            tableId: 8,
+            restaurantId: 1,
+            tableId: 2,
             reservationDate: '2026-04-21',
             slotHour: 17,
             status: 'ACTIVE',
@@ -33,18 +40,20 @@ export class ReservationService {
     ];
 
     create(createReservationDto: CreateReservationDto) {
-        const activeReservations = this.findActiveReservationsForTableOnDate(
+        this.restaurantsService.findCertainTableInRestaurant(
+            createReservationDto.restaurantId,
+            createReservationDto.tableId,
+        );
+
+        const isAvailable = this.isSlotAvailable(
             createReservationDto.restaurantId,
             createReservationDto.tableId,
             createReservationDto.reservationDate,
+            createReservationDto.slotHour,
         );
 
-        const slotTaken = activeReservations.some(
-            (reservation) => reservation.slotHour === createReservationDto.slotHour,
-        );
-
-        if (slotTaken) {
-            throw new BadRequestException('Requested slot is not available');
+        if (!isAvailable) {
+            throw new ConflictException('Requested slot is not available');
         }
 
         const newReservation: Reservation = {
@@ -66,9 +75,26 @@ export class ReservationService {
     }
 
     findCertainReservation(id: number) {
-        const found = this.findAll().find((reservation) => reservation.id === id);
-        if (!found) throw new NotFoundException('Reservation not found');
+        const found = this.reservations.find((reservation) => reservation.id === id);
+
+        if (!found) {
+            throw new NotFoundException('Reservation not found');
+        }
+
         return found;
+    }
+
+    findActiveReservationsForTableOnDate(
+        tableId: number,
+        reservationDate: string,
+    ) {
+        return this.reservations.filter((reservation) => {
+            return (
+                reservation.tableId === tableId &&
+                reservation.reservationDate === reservationDate &&
+                reservation.status === 'ACTIVE'
+            );
+        });
     }
 
     buildAvailabilityForTableOnDate(
@@ -76,13 +102,14 @@ export class ReservationService {
         tableId: number,
         reservationDate: string,
     ): HourAvailability {
+        this.restaurantsService.findCertainTableInRestaurant(restaurantId, tableId);
+
         const availability = this.openingHours.reduce((acc, hour) => {
             acc[hour] = true;
             return acc;
         }, {} as HourAvailability);
 
         const activeReservations = this.findActiveReservationsForTableOnDate(
-            restaurantId,
             tableId,
             reservationDate,
         );
@@ -109,19 +136,62 @@ export class ReservationService {
         return availability[slotHour];
     }
 
-    private findActiveReservationsForTableOnDate(
-        restaurantId: number,
-        tableId: number,
-        reservationDate: string,
-    ): Reservation[] {
-        this.restaurantsService.findCertainTableInRestaurant(restaurantId, tableId);
+    async cancelReservation(id: number) {
+        const reservation = this.findCertainReservation(id);
 
-        return this.reservations.filter(
-            (reservation) =>
-                reservation.restaurantId === restaurantId &&
-                reservation.tableId === tableId &&
-                reservation.reservationDate === reservationDate &&
-                reservation.status === 'ACTIVE',
+        if (reservation.status === 'CANCELLED') {
+            throw new BadRequestException('Reservation is already cancelled');
+        }
+
+        reservation.status = 'CANCELLED';
+
+        const waitingEntry = this.waitlistService.findFirstWaitingEntryForSlot(
+            reservation.restaurantId,
+            reservation.tableId,
+            reservation.reservationDate,
+            reservation.slotHour,
         );
+
+        if (!waitingEntry) {
+            return {
+                cancelledReservation: reservation,
+                promotedReservation: null,
+                promotedWaitlistEntry: null,
+            };
+        }
+
+        const user = this.usersService.findCertainUser(waitingEntry.userId);
+
+        const canAutoPromote =
+            await this.featureFlagsService.canAutoPromoteFromWaitlist(
+                user.id,
+                user.segment,
+            );
+
+        if (!canAutoPromote) {
+            return {
+                cancelledReservation: reservation,
+                promotedReservation: null,
+                promotedWaitlistEntry: null,
+            };
+        }
+
+        const promotedReservation = this.create({
+            userId: waitingEntry.userId,
+            restaurantId: waitingEntry.restaurantId,
+            tableId: waitingEntry.tableId,
+            reservationDate: waitingEntry.reservationDate,
+            slotHour: waitingEntry.slotHour,
+        });
+
+        const promotedWaitlistEntry = this.waitlistService.markPromoted(
+            waitingEntry.id,
+        );
+
+        return {
+            cancelledReservation: reservation,
+            promotedReservation,
+            promotedWaitlistEntry,
+        };
     }
 }

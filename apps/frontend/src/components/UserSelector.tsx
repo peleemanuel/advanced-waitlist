@@ -21,7 +21,7 @@ export function UserSelector({
                 >
                     {users.map((user) => (
                         <option key={user.id} value={user.id}>
-                            {user.name} ({user.segment})
+                            {user.name} ({user.segment}) ({user.email})
                         </option>
                     ))}
                 </select>

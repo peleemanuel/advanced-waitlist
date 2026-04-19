@@ -19,6 +19,7 @@ export type UserSegment = "normal" | "beta";
 export type User = {
     id: number;
     name: string;
+    email: string;
     segment: UserSegment;
 };
 

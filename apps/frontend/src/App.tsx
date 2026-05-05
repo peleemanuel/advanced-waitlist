@@ -18,6 +18,7 @@ import {
 import type { Hour, HourAvailability, Restaurant, User, WaitlistEntry, Reservation } from "./types/domain";
 import { WaitlistPanel } from "./components/WaitlistPanel";
 import { ReservationsPanel } from "./components/ReservationsPanel";
+import { SelectedSlotPanel } from "./components/SelectedSlotPanel";
 
 function App() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -39,6 +40,8 @@ function App() {
   const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
 
   const [reservations, setReservations] = useState<Reservation[]>([]);
+
+  const [selectedHour, setSelectedHour] = useState<number | null>(null);
 
   async function loadAvailability(
     restaurantId: number,
@@ -118,6 +121,7 @@ function App() {
   function handleSelectRestaurant(restaurantId: number) {
     setSelectedRestaurantId(restaurantId);
     setSelectedTableId(null);
+    setSelectedHour(null);
     setAvailability(null);
     setMessage(null);
     setError(null);
@@ -133,10 +137,13 @@ function App() {
       return;
     }
 
+    setSelectedHour(hour);
+
     try {
       setBookingInProgress(true);
       setMessage(null);
       setError(null);
+      setSelectedHour(hour);
 
       await createWaitlistEntry({
         userId: selectedUser.id,
@@ -151,7 +158,6 @@ function App() {
       );
 
       await loadMyWaitlistEntries(selectedUser.id);
-
     } catch (err) {
       if (err instanceof Error) {
         setMessage(err.message);
@@ -163,7 +169,7 @@ function App() {
     }
   }
 
-  async function handleSelectSlot(hour: Hour) {
+  async function handleReserveSlot(hour: Hour) {
     if (!selectedRestaurantId || !selectedTableId) {
       return;
     }
@@ -180,6 +186,8 @@ function App() {
         reservationDate: selectedDate,
         slotHour: hour,
       });
+
+      setSelectedHour(hour);
 
       setMessage(
         `Reservation created for ${selectedUser.name} on ${selectedDate} at ${hour}:00`,
@@ -270,6 +278,10 @@ function App() {
     });
   }
 
+  function handleInspectSlot(hour: Hour) {
+    setSelectedHour(hour);
+  }
+
   if (loading) {
     return <div style={{ padding: "24px" }}>Loading restaurants...</div>;
   }
@@ -307,14 +319,27 @@ function App() {
       <div style={{ marginTop: "32px" }}>
         <ReservationsPanel
           reservations={selectedUserReservations}
+          users={MOCK_USERS}
           onCancelReservation={handleCancelReservation}
         />
       </div>
 
       {canSeeAdvancedWaitlist && (
         <div style={{ marginTop: "32px" }}>
-          <WaitlistPanel entries={waitlistEntries} />
+          <WaitlistPanel entries={waitlistEntries} users={MOCK_USERS} />
         </div>)}
+
+      <div style={{ marginTop: "32px" }}>
+        <SelectedSlotPanel
+          selectedRestaurantId={selectedRestaurantId}
+          selectedTableId={selectedTableId}
+          selectedDate={selectedDate}
+          selectedHour={selectedHour}
+          reservations={reservations}
+          waitlistEntries={waitlistEntries}
+          users={MOCK_USERS}
+        />
+      </div>
 
       {error && (
         <div style={{ marginBottom: "16px", color: "red" }}>
@@ -344,13 +369,20 @@ function App() {
         <TableList
           restaurant={selectedRestaurant}
           selectedTableId={selectedTableId}
-          onSelectTable={setSelectedTableId}
+          onSelectTable={(tableId) => {
+            setSelectedTableId(tableId);
+            setSelectedHour(null);
+            setAvailability(null);
+            setMessage(null);
+          }}
         />
 
         <AvailabilityGrid
           availability={availability}
+          selectedHour={selectedHour}
           canSeeAdvancedWaitlist={canSeeAdvancedWaitlist}
-          onSelectSlot={handleSelectSlot}
+          onInspectSlot={handleInspectSlot}
+          onReserveSlot={handleReserveSlot}
           onJoinWaitlist={handleJoinWaitlist}
           userAlreadyHasReservationForHour={userAlreadyHasReservationForHour}
         />

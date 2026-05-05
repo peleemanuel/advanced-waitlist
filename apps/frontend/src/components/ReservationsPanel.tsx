@@ -1,14 +1,20 @@
-import type { Reservation } from "../types/domain";
+import type { Reservation, User } from "../types/domain";
 
 type ReservationsPanelProps = {
     reservations: Reservation[];
+    users: User[];
     onCancelReservation: (reservationId: number) => void;
 };
 
 export function ReservationsPanel({
     reservations,
+    users,
     onCancelReservation,
 }: ReservationsPanelProps) {
+    function getUserName(userId: number) {
+        return users.find((user) => user.id === userId)?.name ?? `User ${userId}`;
+    }
+
     return (
         <div>
             <h2>My reservations</h2>
@@ -20,8 +26,9 @@ export function ReservationsPanel({
                     {reservations.map((reservation) => (
                         <li key={reservation.id} style={{ marginBottom: "12px" }}>
                             <div>
-                                Restaurant {reservation.restaurantId}, table {reservation.tableId},
-                                date {reservation.reservationDate}, hour {reservation.slotHour}:00,
+                                <strong>{getUserName(reservation.userId)}</strong> - restaurant{" "}
+                                {reservation.restaurantId}, table {reservation.tableId}, date{" "}
+                                {reservation.reservationDate}, hour {reservation.slotHour}:00,
                                 status <strong>{reservation.status}</strong>
                             </div>
 

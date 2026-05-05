@@ -1,4 +1,4 @@
-import type { Hour, HourAvailability, Restaurant, WaitlistEntry } from '../types/domain';
+import type { Hour, HourAvailability, Restaurant, WaitlistEntry, Reservation } from '../types/domain';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -18,7 +18,7 @@ export async function getTableAvailability(
     date: string,
 ): Promise<HourAvailability> {
     const response = await fetch(
-        `${API_BASE_URL}/restaurants/${restaurantId}/tables/${tableId}/availability?date=${date}`,
+        `${API_BASE_URL}/reservations/availability/${restaurantId}/${tableId}?date=${date}`,
     );
 
     if (!response.ok) {
@@ -114,6 +114,33 @@ export async function getMyWaitlistEntries(
 
     if (!response.ok) {
         throw new Error("Failed to fetch waitlist entries");
+    }
+
+    return response.json();
+}
+
+export async function getReservations(): Promise<Reservation[]> {
+    const response = await fetch(`${API_BASE_URL}/reservations`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch reservations");
+    }
+
+    return response.json();
+}
+
+export async function cancelReservation(reservationId: number) {
+    const response = await fetch(
+        `${API_BASE_URL}/reservations/${reservationId}/cancel`,
+        {
+            method: "PATCH",
+        },
+    );
+
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => null);
+        const message = errorBody?.message ?? "Failed to cancel reservation";
+        throw new Error(message);
     }
 
     return response.json();

@@ -34,3 +34,15 @@ export type WaitlistEntry = {
     slotHour: Hour;
     status: WaitlistStatus;
 };
+
+export type ReservationStatus = "ACTIVE" | "CANCELLED";
+
+export type Reservation = {
+    id: number;
+    userId: number;
+    restaurantId: number;
+    tableId: number;
+    reservationDate: string;
+    slotHour: Hour;
+    status: ReservationStatus;
+};

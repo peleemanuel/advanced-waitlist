@@ -12,9 +12,12 @@ import {
   getTableAvailability,
   createWaitlistEntry,
   getMyWaitlistEntries,
+  cancelReservation,
+  getReservations,
 } from "./services/api";
-import type { Hour, HourAvailability, Restaurant, User, WaitlistEntry } from "./types/domain";
+import type { Hour, HourAvailability, Restaurant, User, WaitlistEntry, Reservation } from "./types/domain";
 import { WaitlistPanel } from "./components/WaitlistPanel";
+import { ReservationsPanel } from "./components/ReservationsPanel";
 
 function App() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -34,6 +37,8 @@ function App() {
   const [canSeeAdvancedWaitlist, setCanSeeAdvancedWaitlist] = useState(false);
 
   const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
+
+  const [reservations, setReservations] = useState<Reservation[]>([]);
 
   async function loadAvailability(
     restaurantId: number,
@@ -82,6 +87,10 @@ function App() {
 
   const selectedUser: User =
     MOCK_USERS.find((user) => user.id === selectedUserId) ?? MOCK_USERS[0];
+
+  const selectedUserReservations = reservations.filter(
+    (reservation) => reservation.userId === selectedUser.id,
+  );
 
   useEffect(() => {
     async function loadFeatureFlags() {
@@ -181,6 +190,8 @@ function App() {
         selectedTableId,
         selectedDate,
       );
+
+      await loadReservations();
     } catch (err) {
       if (err instanceof Error) {
         setMessage(err.message);
@@ -191,6 +202,57 @@ function App() {
       setBookingInProgress(false);
     }
   }
+
+  async function loadReservations() {
+    const data = await getReservations();
+    setReservations(data);
+  }
+
+  async function handleCancelReservation(reservationId: number) {
+    try {
+      setBookingInProgress(true);
+      setMessage(null);
+      setError(null);
+
+      const result = await cancelReservation(reservationId);
+
+      if (result.promotedReservation) {
+        setMessage(
+          `Reservation cancelled. User ${result.promotedReservation.userId} was auto-promoted from waitlist.`,
+        );
+      } else {
+        setMessage("Reservation cancelled.");
+      }
+
+      await loadReservations();
+
+      if (selectedRestaurantId && selectedTableId) {
+        await loadAvailability(selectedRestaurantId, selectedTableId, selectedDate);
+      }
+
+      await loadMyWaitlistEntries(selectedUser.id);
+    } catch (err) {
+      if (err instanceof Error) {
+        setMessage(err.message);
+      } else {
+        setMessage("Could not cancel reservation");
+      }
+    } finally {
+      setBookingInProgress(false);
+    }
+  }
+
+  useEffect(() => {
+    async function fetchReservations() {
+      try {
+        await loadReservations();
+      } catch (err) {
+        console.error("Error fetching reservations:", err);
+      }
+    }
+
+    fetchReservations();
+  }, []);
 
   if (loading) {
     return <div style={{ padding: "24px" }}>Loading restaurants...</div>;
@@ -224,6 +286,13 @@ function App() {
             onChange={(event) => setSelectedDate(event.target.value)}
           />
         </label>
+      </div>
+
+      <div style={{ marginTop: "32px" }}>
+        <ReservationsPanel
+          reservations={selectedUserReservations}
+          onCancelReservation={handleCancelReservation}
+        />
       </div>
 
       {canSeeAdvancedWaitlist && (

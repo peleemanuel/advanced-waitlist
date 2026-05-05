@@ -4,8 +4,8 @@ import { RestaurantsService } from './restaurants.service';
 
 @Controller('restaurants')
 export class RestaurantsController {
-  constructor(private readonly restaurantsService: RestaurantsService) {}
-  
+  constructor(private readonly restaurantsService: RestaurantsService) { }
+
   @Get()
   findAll() {
     return this.restaurantsService.findAll();
@@ -20,5 +20,5 @@ export class RestaurantsController {
   create(@Body() createRestaurantDto: CreateRestaurantDto) {
     return this.restaurantsService.create(createRestaurantDto);
   }
-  
+
 }

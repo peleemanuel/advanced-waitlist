@@ -20,6 +20,21 @@ export class WaitlistService {
             createWaitlistEntryDto.tableId,
         );
 
+        const userAlreadyHasReservation =
+            this.reservationService.userHasActiveReservationForSlot(
+                createWaitlistEntryDto.userId,
+                createWaitlistEntryDto.restaurantId,
+                createWaitlistEntryDto.tableId,
+                createWaitlistEntryDto.reservationDate,
+                createWaitlistEntryDto.slotHour,
+            );
+
+        if (userAlreadyHasReservation) {
+            throw new BadRequestException(
+                "User already has an active reservation for this slot",
+            );
+        }
+
         const isSlotAvailable = this.reservationService.isSlotAvailable(
             createWaitlistEntryDto.restaurantId,
             createWaitlistEntryDto.tableId,

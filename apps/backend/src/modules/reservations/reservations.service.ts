@@ -194,4 +194,23 @@ export class ReservationService {
             promotedWaitlistEntry,
         };
     }
+
+    userHasActiveReservationForSlot(
+        userId: number,
+        restaurantId: number,
+        tableId: number,
+        reservationDate: string,
+        slotHour: Hour,
+    ): boolean {
+        return this.reservations.some((reservation) => {
+            return (
+                reservation.userId === userId &&
+                reservation.restaurantId === restaurantId &&
+                reservation.tableId === tableId &&
+                reservation.reservationDate === reservationDate &&
+                reservation.slotHour === slotHour &&
+                reservation.status === "ACTIVE"
+            );
+        });
+    }
 }

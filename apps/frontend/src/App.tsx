@@ -254,6 +254,22 @@ function App() {
     fetchReservations();
   }, []);
 
+  function userAlreadyHasReservationForHour(hour: Hour): boolean {
+    if (!selectedRestaurantId || !selectedTableId) {
+      return false;
+    }
+
+    return selectedUserReservations.some((reservation) => {
+      return (
+        reservation.restaurantId === selectedRestaurantId &&
+        reservation.tableId === selectedTableId &&
+        reservation.reservationDate === selectedDate &&
+        reservation.slotHour === hour &&
+        reservation.status === "ACTIVE"
+      );
+    });
+  }
+
   if (loading) {
     return <div style={{ padding: "24px" }}>Loading restaurants...</div>;
   }
@@ -336,6 +352,7 @@ function App() {
           canSeeAdvancedWaitlist={canSeeAdvancedWaitlist}
           onSelectSlot={handleSelectSlot}
           onJoinWaitlist={handleJoinWaitlist}
+          userAlreadyHasReservationForHour={userAlreadyHasReservationForHour}
         />
       </div>
     </div>

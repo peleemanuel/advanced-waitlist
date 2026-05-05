@@ -5,6 +5,7 @@ type AvailabilityGridProps = {
     canSeeAdvancedWaitlist: boolean;
     onSelectSlot: (hour: Hour) => void;
     onJoinWaitlist: (hour: Hour) => void;
+    userAlreadyHasReservationForHour: (hour: Hour) => boolean;
 };
 
 const HOURS: Hour[] = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
@@ -14,6 +15,7 @@ export function AvailabilityGrid({
     canSeeAdvancedWaitlist,
     onSelectSlot,
     onJoinWaitlist,
+    userAlreadyHasReservationForHour,
 }: AvailabilityGridProps) {
     if (!availability) {
         return <p>Select a table and a date to see availability.</p>;
@@ -63,7 +65,7 @@ export function AvailabilityGrid({
                         >
                             <div style={{ color: "black", fontWeight: "bold", paddingTop: "12px" }}>{hour}:00</div>
 
-                            {canSeeAdvancedWaitlist ? (
+                            {canSeeAdvancedWaitlist && !userAlreadyHasReservationForHour(hour) ? (
                                 <button
                                     onClick={() => onJoinWaitlist(hour)}
                                     style={{ marginTop: "8px" }}

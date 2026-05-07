@@ -163,10 +163,7 @@ export class ReservationService {
         const user = this.usersService.findCertainUser(waitingEntry.userId);
 
         const canAutoPromote =
-            await this.featureFlagsService.canAutoPromoteFromWaitlist(
-                user.id,
-                user.segment,
-            );
+            await this.featureFlagsService.canAutoPromoteFromWaitlist(user);
 
         if (!canAutoPromote) {
             return {

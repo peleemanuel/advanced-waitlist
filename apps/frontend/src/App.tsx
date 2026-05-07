@@ -100,10 +100,7 @@ function App() {
       try {
         setError(null);
 
-        const enabled = await getAdvancedWaitlistUiFlag(
-          selectedUser.id,
-          selectedUser.segment,
-        );
+        const enabled = await getAdvancedWaitlistUiFlag(selectedUser.id);
 
         setCanSeeAdvancedWaitlist(enabled);
       } catch (err) {

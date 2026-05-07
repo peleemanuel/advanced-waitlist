@@ -10,12 +10,7 @@
       "targeting": {
         "if": [
           {
-            "==": [
-              {
-                "var": "segment"
-              },
-              "beta"
-            ]
+            "==": [{ "var": "emailDomain" }, "gmail.com"]
           },
           "on",
           "off"
@@ -32,12 +27,7 @@
       "targeting": {
         "if": [
           {
-            "==": [
-              {
-                "var": "segment"
-              },
-              "beta"
-            ]
+            "==": [{ "var": "emailDomain" }, "gmail.com"]
           },
           "on",
           "off"

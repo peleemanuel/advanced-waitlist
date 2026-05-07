@@ -1,30 +1,34 @@
 import { Injectable } from "@nestjs/common";
 import { OpenFeature } from "@openfeature/server-sdk";
-import { UserSegment } from "../shared/types/domain.types";
+import { User } from "../shared/types/domain.types";
 
 @Injectable()
 export class FeatureFlagsService {
     private client = OpenFeature.getClient();
 
-    async canSeeAdvancedWaitlist(userId: number, segment: string): Promise<boolean> {
+    private buildUserFlagContext(user: User) {
+        const emailDomain = user.email.split("@")[1] ?? "";
+
+        return {
+            targetingKey: String(user.id),
+            segment: user.segment,
+            emailDomain,
+        };
+    }
+
+    async canSeeAdvancedWaitlist(user: User): Promise<boolean> {
         return this.client.getBooleanValue(
             "advanced-waitlist-ui",
             false,
-            {
-                targetingKey: String(userId),
-                segment,
-            },
+            this.buildUserFlagContext(user),
         );
     }
 
-    async canAutoPromoteFromWaitlist(userId: number, segment: UserSegment): Promise<boolean> {
+    async canAutoPromoteFromWaitlist(user: User): Promise<boolean> {
         return this.client.getBooleanValue(
             "advanced-waitlist-auto-promote",
             false,
-            {
-                targetingKey: String(userId),
-                segment,
-            },
+            this.buildUserFlagContext(user),
         );
     }
 }

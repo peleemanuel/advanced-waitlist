@@ -1,0 +1,40 @@
+services:
+  frontend:
+    build:
+      context: ./apps/frontend
+    container_name: advanced-waitlist-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./apps/frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./apps/backend
+    container_name: advanced-waitlist-backend
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      FLAGD_HOST: flagd
+      FLAGD_PORT: 8013
+    volumes:
+      - ./apps/backend:/app
+      - /app/node_modules
+    depends_on:
+      - flagd
+
+  flagd:
+    image: ghcr.io/open-feature/flagd:latest
+    container_name: advanced-waitlist-flagd
+    command:
+      - start
+      - --uri
+      - file:/etc/flagd/flags.flagd.json
+    ports:
+      - "8013:8013"
+    volumes:
+      - ./apps/backend/flags.flagd.json:/etc/flagd/flags.flagd.json:ro

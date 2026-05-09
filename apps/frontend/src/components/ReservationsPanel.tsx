@@ -1,35 +1,36 @@
-import type { Reservation, User } from "../types/domain";
+import type { Reservation } from "../types/domain";
 
 type ReservationsPanelProps = {
     reservations: Reservation[];
-    users: User[];
     onCancelReservation: (reservationId: number) => void;
 };
 
 export function ReservationsPanel({
     reservations,
-    users,
     onCancelReservation,
 }: ReservationsPanelProps) {
-    function getUserName(userId: number) {
-        return users.find((user) => user.id === userId)?.name ?? `User ${userId}`;
-    }
 
     return (
-        <div>
+        <div
+            style={{
+                border: "1px solid #d1d5db",
+                borderRadius: "12px",
+                padding: "16px",
+            }}
+        >
             <h2>My reservations</h2>
 
             {reservations.length === 0 ? (
                 <p>No reservations yet.</p>
             ) : (
-                <ul>
+                <div>
                     {reservations.map((reservation) => (
-                        <li key={reservation.id} style={{ marginBottom: "12px" }}>
+                        <div key={reservation.id} style={{ padding: "12px" }}>
                             <div>
-                                <strong>{getUserName(reservation.userId)}</strong> - restaurant{" "}
+                                Restaurant{" "}
                                 {reservation.restaurantId}, table {reservation.tableId}, date{" "}
                                 {reservation.reservationDate}, hour {reservation.slotHour}:00,
-                                status <strong>{reservation.status}</strong>
+                                status <strong style={{ color: reservation.status === "ACTIVE" ? "green" : "red" }}>{reservation.status}</strong>
                             </div>
 
                             {reservation.status === "ACTIVE" && (
@@ -40,9 +41,9 @@ export function ReservationsPanel({
                                     Cancel
                                 </button>
                             )}
-                        </li>
+                        </div>
                     ))}
-                </ul>
+                </div>
             )}
         </div>
     );

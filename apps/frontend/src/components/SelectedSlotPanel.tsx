@@ -51,7 +51,14 @@ export function SelectedSlotPanel({
     });
 
     return (
-        <div>
+        <div
+            style={{
+                border: "1px solid #d1d5db",
+                borderRadius: "12px",
+                padding: "16px",
+                marginBottom: "16px"
+            }}
+        >
             <h2>Selected slot details</h2>
 
             <div style={{ marginBottom: "12px" }}>

@@ -351,7 +351,7 @@ function App() {
 
       <div style={{ marginBottom: "16px" }}>
         Advanced waitlist UI enabled:{" "}
-        <strong>{canSeeAdvancedWaitlist ? "yes" : "no"}</strong>
+        <strong style={{ color: canSeeAdvancedWaitlist ? "green" : "red" }}>{canSeeAdvancedWaitlist ? "Yes" : "No"}</strong>
       </div>
 
       <div style={{ marginBottom: "16px" }}>
@@ -368,14 +368,13 @@ function App() {
       <div style={{ marginTop: "32px" }}>
         <ReservationsPanel
           reservations={selectedUserReservations}
-          users={MOCK_USERS}
           onCancelReservation={handleCancelReservation}
         />
       </div>
 
       {canSeeAdvancedWaitlist && (
         <div style={{ marginTop: "32px" }}>
-          <WaitlistPanel entries={waitlistEntries} users={MOCK_USERS} />
+          <WaitlistPanel entries={waitlistEntries} />
         </div>)}
 
       <div style={{ marginTop: "32px" }}>

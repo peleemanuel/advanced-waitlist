@@ -22,9 +22,9 @@ export function TableList({
       {restaurant.tables.length === 0 ? (
         <p>No tables found.</p>
       ) : (
-        <ul>
+        <div>
           {restaurant.tables.map((table) => (
-            <li key={table.id}>
+            <div key={table.id}>
               <button
                 onClick={() => onSelectTable(table.id)}
                 style={{
@@ -33,9 +33,9 @@ export function TableList({
               >
                 Table {table.tableNumber} - capacity {table.capacity}
               </button>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

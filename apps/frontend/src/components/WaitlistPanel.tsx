@@ -1,42 +1,46 @@
-import type { User, WaitlistEntry } from "../types/domain";
+import type { WaitlistEntry } from "../types/domain";
 
 type WaitlistPanelProps = {
     entries: WaitlistEntry[];
-    users: User[];
 };
 
-export function WaitlistPanel({ entries, users }: WaitlistPanelProps) {
-    function getUserName(userId: number) {
-        return users.find((user) => user.id === userId)?.name ?? `User ${userId}`;
-    }
+export function WaitlistPanel({ entries }: WaitlistPanelProps) {
 
     function getStatusColor(status: WaitlistEntry["status"]) {
         if (status === "WAITING") return "#d97706";
-        if (status === "PROMOTED") return "#15803d";
+        if (status === "PROMOTED") return "green";
         return "#6b7280";
     }
 
     return (
-        <div>
-            <h2>My waitlist entries</h2>
+        <div
+            style={{
+                border: "1px solid #d1d5db",
+                borderRadius: "12px",
+                padding: "16px",
+            }}
+        >
+            <h2 style={{ marginTop: 0 }}>My waitlist entries</h2>
 
             {entries.length === 0 ? (
                 <p>No waitlist entries yet.</p>
             ) : (
-                <ul>
+                <div>
                     {entries.map((entry) => (
-                        <li key={entry.id} style={{ marginBottom: "12px" }}>
+                        <div
+                            key={entry.id}
+                            style={{ padding: "12px" }}
+                        >
                             <div>
-                                <strong>{getUserName(entry.userId)}</strong> - restaurant{" "}
-                                {entry.restaurantId}, table {entry.tableId}, date{" "}
+                                Restaurant {entry.restaurantId}, table {entry.tableId}, date{" "}
                                 {entry.reservationDate}, hour {entry.slotHour}:00, status{" "}
                                 <strong style={{ color: getStatusColor(entry.status) }}>
                                     {entry.status}
                                 </strong>
                             </div>
-                        </li>
+                        </div>
                     ))}
-                </ul>
+                </div>
             )}
         </div>
     );

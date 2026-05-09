@@ -14,6 +14,7 @@ import {
   getMyWaitlistEntries,
   cancelReservation,
   getReservations,
+  getWaitlistEntriesForSlot
 } from "./services/api";
 import type { Hour, HourAvailability, Restaurant, User, WaitlistEntry, Reservation } from "./types/domain";
 import { WaitlistPanel } from "./components/WaitlistPanel";
@@ -42,6 +43,26 @@ function App() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
 
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
+
+  const [selectedSlotWaitlistEntries, setSelectedSlotWaitlistEntries] = useState<
+    WaitlistEntry[]
+  >([]);
+
+  async function loadSelectedSlotWaitlistEntries(hour: Hour) {
+    if (!selectedRestaurantId || !selectedTableId) {
+      setSelectedSlotWaitlistEntries([]);
+      return;
+    }
+
+    const data = await getWaitlistEntriesForSlot(
+      selectedRestaurantId,
+      selectedTableId,
+      selectedDate,
+      hour,
+    );
+
+    setSelectedSlotWaitlistEntries(data);
+  }
 
   async function loadAvailability(
     restaurantId: number,
@@ -155,6 +176,7 @@ function App() {
       );
 
       await loadMyWaitlistEntries(selectedUser.id);
+      await loadSelectedSlotWaitlistEntries(hour);
     } catch (err) {
       if (err instanceof Error) {
         setMessage(err.message);
@@ -236,6 +258,11 @@ function App() {
       }
 
       await loadMyWaitlistEntries(selectedUser.id);
+
+      if (selectedHour !== null) {
+        await loadSelectedSlotWaitlistEntries(selectedHour as Hour);
+      }
+
     } catch (err) {
       if (err instanceof Error) {
         setMessage(err.message);
@@ -246,6 +273,20 @@ function App() {
       setBookingInProgress(false);
     }
   }
+
+  useEffect(() => {
+    async function fetchMyWaitlistEntries() {
+      try {
+        const data = await getMyWaitlistEntries(selectedUserId);
+        setWaitlistEntries(data);
+      } catch (err) {
+        console.error("Error fetching waitlist entries:", err);
+        setWaitlistEntries([]);
+      }
+    }
+
+    fetchMyWaitlistEntries();
+  }, [selectedUserId]);
 
   useEffect(() => {
     async function fetchReservations() {
@@ -274,11 +315,22 @@ function App() {
       );
     });
   }
-
-  function handleInspectSlot(hour: Hour) {
-    setSelectedHour(hour);
+  function handleSelectUser(userId: number) {
+    setSelectedUserId(userId);
+    setWaitlistEntries([]);
+    setMessage(null);
+    setError(null);
   }
 
+  async function handleInspectSlot(hour: Hour) {
+    setSelectedHour(hour);
+
+    try {
+      await loadSelectedSlotWaitlistEntries(hour);
+    } catch (err) {
+      console.error("Error loading slot waitlist:", err);
+    }
+  }
   if (loading) {
     return <div style={{ padding: "24px" }}>Loading restaurants...</div>;
   }
@@ -290,7 +342,7 @@ function App() {
       <UserSelector
         users={MOCK_USERS}
         selectedUserId={selectedUserId}
-        onSelectUser={setSelectedUserId}
+        onSelectUser={handleSelectUser}
       />
 
       <div style={{ marginBottom: "16px" }}>
@@ -333,7 +385,7 @@ function App() {
           selectedDate={selectedDate}
           selectedHour={selectedHour}
           reservations={reservations}
-          waitlistEntries={waitlistEntries}
+          waitlistEntries={selectedSlotWaitlistEntries}
           users={MOCK_USERS}
         />
       </div>

@@ -3,6 +3,7 @@ import { CreateWaitlistEntryDto } from "./dto/create-waitlist-entry.dto";
 import { RestaurantsService } from "../restaurants/restaurants.service";
 import { WaitlistEntry } from "../shared/types/domain.types";
 import { ReservationService } from "../reservations/reservations.service";
+import { Hour } from "../shared/types/domain.types";
 
 @Injectable()
 export class WaitlistService {
@@ -120,5 +121,21 @@ export class WaitlistService {
         const entry = this.findCertainEntry(id);
         entry.status = "PROMOTED";
         return entry;
+    }
+
+    findEntriesForSlot(
+        restaurantId: number,
+        tableId: number,
+        reservationDate: string,
+        slotHour: Hour,
+    ) {
+        return this.waitlistEntries.filter((entry) => {
+            return (
+                entry.restaurantId === restaurantId &&
+                entry.tableId === tableId &&
+                entry.reservationDate === reservationDate &&
+                entry.slotHour === slotHour
+            );
+        });
     }
 }

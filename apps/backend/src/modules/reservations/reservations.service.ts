@@ -18,26 +18,7 @@ export class ReservationService {
 
     private readonly openingHours: Hour[] = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 
-    private reservations: Reservation[] = [
-        {
-            id: 1,
-            userId: 1,
-            restaurantId: 1,
-            tableId: 1,
-            reservationDate: '2026-04-20',
-            slotHour: 15,
-            status: 'ACTIVE',
-        },
-        {
-            id: 2,
-            userId: 2,
-            restaurantId: 1,
-            tableId: 2,
-            reservationDate: '2026-04-21',
-            slotHour: 17,
-            status: 'ACTIVE',
-        },
-    ];
+    private reservations: Reservation[] = [];
 
     create(createReservationDto: CreateReservationDto) {
         this.restaurantsService.findCertainTableInRestaurant(

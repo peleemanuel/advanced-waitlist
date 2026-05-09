@@ -144,3 +144,20 @@ export async function cancelReservation(reservationId: number) {
 
     return response.json();
 }
+
+export async function getWaitlistEntriesForSlot(
+    restaurantId: number,
+    tableId: number,
+    date: string,
+    slotHour: Hour,
+): Promise<WaitlistEntry[]> {
+    const response = await fetch(
+        `${API_BASE_URL}/waitlist/slot?restaurantId=${restaurantId}&tableId=${tableId}&date=${date}&slotHour=${slotHour}`,
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch waitlist entries for slot");
+    }
+
+    return response.json();
+}

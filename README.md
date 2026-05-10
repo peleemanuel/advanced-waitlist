@@ -1,6 +1,15 @@
-# Advanced Waitlist Feature Flag Demo
+# Table of Contents
 
-## Overview
+1. [Overview](#overview)
+   a) [Advanced Waitlist](#advanced-waitlist)
+2. [Technologies used](#technologies-used)
+   a) [Frontend](#frontend)
+   b) [Backend](#backend)
+   c) [Feature flag](#feature-flag)
+   d) [Local runtime](#local-runtime)
+3. [Simplifications and future implementations](#simplifications-and-future-implementations)
+
+# Overview
 
 This project is a practical demonstration of a feature flag system using **OpenFeature** and **flagd**.
 
@@ -16,10 +25,6 @@ Access to this feature is controlled through feature flags, allowing the applica
 
 The project does not use an external feature flag SaaS platform. Instead, it uses **OpenFeature** with a local **flagd** provider.
 
----
-
-## Main Idea
-
 The core feature of the application is table reservation.
 
 A user can:
@@ -31,9 +36,7 @@ A user can:
 - reserve an available slot
 - cancel an active reservation
 
-## The experimental feature is:
-
-### Advanced Waitlist
+## Advanced Waitlist
 
 If a slot is already occupied, eligible users can join a waitlist for that exact:
 
@@ -46,36 +49,38 @@ If a slot is already occupied, eligible users can join a waitlist for that exact
 
 When the existing reservation is cancelled, the system can automatically promote the first eligible waitlist entry and create a new reservation for that user.
 
-This feature is controlled by feature flags.
+# Technologies used
 
----
-
-## Technologies Used
-
-### Frontend
+## Frontend
 
 - React
 - TypeScript
 - Vite
 
-### Backend
+## Backend
 
 - NestJS
 - TypeScript
 
-### Feature Flags
+## Feature flag
 
 - OpenFeature
 - flagd
 
-### Local Runtime
+## Local runtime
 
 - Docker
 - Docker Compose
 
----
+Use the following command to run the application:
 
-## Project Structure
+```bash
+docker compose up --build
+```
+
+After that, in the browser open `http://localhost:5173`.
+
+## Project structure
 
 ```text
 advanced-waitlist-project/
@@ -85,3 +90,12 @@ advanced-waitlist-project/
 ├── compose.yml
 └── README.md
 ```
+
+# Simplifications and future implementations
+
+To avoid relying on external SaaS solutions and to keep the demo fully reproducible in a local environment, several simplifications were introduced in the project in order to maintain the focus on the feature flag system.
+
+- Dropdown instead of real user login
+- In-memory data
+- No persistent data
+- Local flagd instead of cloud service

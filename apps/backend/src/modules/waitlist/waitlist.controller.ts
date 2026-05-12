@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Param, ParseIntPipe, Post, Query } from "@nestjs/common";
 import { WaitlistService } from "./waitlist.service";
 import { CreateWaitlistEntryDto } from "./dto/create-waitlist-entry.dto";
 import type { Hour } from "../shared/types/domain.types";
@@ -24,9 +24,13 @@ export class WaitlistController {
     findEntriesForSlot(
         @Query("restaurantId", ParseIntPipe) restaurantId: number,
         @Query("tableId", ParseIntPipe) tableId: number,
-        @Query("date") reservationDate: string,
+        @Query("date") reservationDate?: string,
         @Query("slotHour", ParseIntPipe) slotHour: Hour,
     ) {
+        if (!reservationDate) {
+            throw new BadRequestException('Query parameter "date" is required');
+        }
+
         return this.waitlistService.findEntriesForSlot(
             restaurantId,
             tableId,

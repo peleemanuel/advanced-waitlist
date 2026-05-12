@@ -7,7 +7,7 @@ export class FeatureFlagsService {
     private client = OpenFeature.getClient();
 
     private buildUserFlagContext(user: User) {
-        const emailDomain = user.email.split("@")[1] ?? "";
+        const emailDomain = user.email.split("@")[1]?.toLowerCase() ?? "";
 
         return {
             targetingKey: String(user.id),

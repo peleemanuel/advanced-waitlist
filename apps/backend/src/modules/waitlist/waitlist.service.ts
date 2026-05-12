@@ -4,6 +4,7 @@ import { RestaurantsService } from "../restaurants/restaurants.service";
 import { WaitlistEntry } from "../shared/types/domain.types";
 import { ReservationService } from "../reservations/reservations.service";
 import { Hour } from "../shared/types/domain.types";
+import { UsersService } from "../users/users.service";
 
 @Injectable()
 export class WaitlistService {
@@ -11,11 +12,15 @@ export class WaitlistService {
         private readonly restaurantsService: RestaurantsService,
         @Inject(forwardRef(() => ReservationService))
         private readonly reservationService: ReservationService,
+        private readonly usersService: UsersService,
     ) { }
 
+    // In-memory store for demo purposes only.
     private waitlistEntries: WaitlistEntry[] = [];
 
     create(createWaitlistEntryDto: CreateWaitlistEntryDto) {
+        this.usersService.findCertainUser(createWaitlistEntryDto.userId);
+
         this.restaurantsService.findCertainTableInRestaurant(
             createWaitlistEntryDto.restaurantId,
             createWaitlistEntryDto.tableId,

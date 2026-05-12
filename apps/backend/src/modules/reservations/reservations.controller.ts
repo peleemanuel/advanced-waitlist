@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ReservationService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 
@@ -20,8 +20,12 @@ export class ReservationsController {
     getAvailability(
         @Param('restaurantId', ParseIntPipe) restaurantId: number,
         @Param('tableId', ParseIntPipe) tableId: number,
-        @Query('date') reservationDate: string,
+        @Query('date') reservationDate?: string,
     ) {
+        if (!reservationDate) {
+            throw new BadRequestException('Query parameter "date" is required');
+        }
+
         return this.reservationService.buildAvailabilityForTableOnDate(
             restaurantId,
             tableId,

@@ -1,15 +1,33 @@
 import type { Hour, HourAvailability, Restaurant, WaitlistEntry, Reservation } from '../types/domain';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
-export async function getRestaurants(): Promise<Restaurant[]> {
-    const response = await fetch(`${API_BASE_URL}/restaurants`);
+type ApiErrorBody = {
+    message?: string | string[];
+};
 
-    if (!response.ok) {
-        throw new Error('Failed to fetch restaurants');
+async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
+    let response: Response;
+
+    try {
+        response = await fetch(input, init);
+    } catch (_err) {
+        throw new Error("Network error while contacting API");
     }
 
-    return response.json();
+    if (!response.ok) {
+        const errorBody: ApiErrorBody | null = await response.json().catch(() => null);
+        const message = Array.isArray(errorBody?.message)
+            ? errorBody?.message.join(", ")
+            : errorBody?.message ?? `Request failed (${response.status})`;
+        throw new Error(message);
+    }
+
+    return response.json() as Promise<T>;
+}
+
+export async function getRestaurants(): Promise<Restaurant[]> {
+    return requestJson<Restaurant[]>(`${API_BASE_URL}/restaurants`);
 }
 
 export async function getTableAvailability(
@@ -17,15 +35,10 @@ export async function getTableAvailability(
     tableId: number,
     date: string,
 ): Promise<HourAvailability> {
-    const response = await fetch(
-        `${API_BASE_URL}/reservations/availability/${restaurantId}/${tableId}?date=${date}`,
+    const params = new URLSearchParams({ date });
+    return requestJson<HourAvailability>(
+        `${API_BASE_URL}/reservations/availability/${restaurantId}/${tableId}?${params.toString()}`,
     );
-
-    if (!response.ok) {
-        throw new Error('Failed to fetch table availability');
-    }
-
-    return response.json();
 }
 
 export type CreateReservationPayload = {
@@ -39,36 +52,22 @@ export type CreateReservationPayload = {
 export async function createReservation(
     payload: CreateReservationPayload,
 ) {
-    const response = await fetch(`${API_BASE_URL}/reservations`, {
+    return requestJson(`${API_BASE_URL}/reservations`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
     });
-
-    if (!response.ok) {
-        const errorBody = await response.json().catch(() => null);
-        const message =
-            errorBody?.message ?? 'Failed to create reservation';
-        throw new Error(message);
-    }
-
-    return response.json();
 }
 
 export async function getAdvancedWaitlistUiFlag(
     userId: number,
 ): Promise<boolean> {
-    const response = await fetch(
-        `${API_BASE_URL}/feature-flags/advanced-waitlist-ui?userId=${userId}`,
+    const params = new URLSearchParams({ userId: String(userId) });
+    const data = await requestJson<{ flag: string; enabled: boolean }>(
+        `${API_BASE_URL}/feature-flags/advanced-waitlist-ui?${params.toString()}`,
     );
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch advanced waitlist flag");
-    }
-
-    const data: { flag: string; enabled: boolean } = await response.json();
     return data.enabled;
 }
 
@@ -83,66 +82,35 @@ export type CreateWaitlistEntryPayload = {
 export async function createWaitlistEntry(
     payload: CreateWaitlistEntryPayload,
 ) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/waitlist`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            const errorBody = await response.json().catch(() => null);
-            const message =
-                errorBody?.message ?? "Failed to create waitlist entry";
-            throw new Error(message);
-        }
-
-        return response.json();
-    } catch (err) {
-        console.error("Error in createWaitlistEntry:", err);
-        throw new Error("Network error while creating waitlist entry");
-    }
+    return requestJson(`${API_BASE_URL}/waitlist`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
 }
 
 export async function getMyWaitlistEntries(
     userId: number,
 ): Promise<WaitlistEntry[]> {
-    const response = await fetch(`${API_BASE_URL}/waitlist/my?userId=${userId}`);
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch waitlist entries");
-    }
-
-    return response.json();
+    const params = new URLSearchParams({ userId: String(userId) });
+    return requestJson<WaitlistEntry[]>(
+        `${API_BASE_URL}/waitlist/my?${params.toString()}`,
+    );
 }
 
 export async function getReservations(): Promise<Reservation[]> {
-    const response = await fetch(`${API_BASE_URL}/reservations`);
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch reservations");
-    }
-
-    return response.json();
+    return requestJson<Reservation[]>(`${API_BASE_URL}/reservations`);
 }
 
 export async function cancelReservation(reservationId: number) {
-    const response = await fetch(
+    return requestJson(
         `${API_BASE_URL}/reservations/${reservationId}/cancel`,
         {
             method: "PATCH",
         },
     );
-
-    if (!response.ok) {
-        const errorBody = await response.json().catch(() => null);
-        const message = errorBody?.message ?? "Failed to cancel reservation";
-        throw new Error(message);
-    }
-
-    return response.json();
 }
 
 export async function getWaitlistEntriesForSlot(
@@ -151,13 +119,13 @@ export async function getWaitlistEntriesForSlot(
     date: string,
     slotHour: Hour,
 ): Promise<WaitlistEntry[]> {
-    const response = await fetch(
-        `${API_BASE_URL}/waitlist/slot?restaurantId=${restaurantId}&tableId=${tableId}&date=${date}&slotHour=${slotHour}`,
+    const params = new URLSearchParams({
+        restaurantId: String(restaurantId),
+        tableId: String(tableId),
+        date,
+        slotHour: String(slotHour),
+    });
+    return requestJson<WaitlistEntry[]>(
+        `${API_BASE_URL}/waitlist/slot?${params.toString()}`,
     );
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch waitlist entries for slot");
-    }
-
-    return response.json();
 }

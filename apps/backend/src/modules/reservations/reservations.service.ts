@@ -18,13 +18,28 @@ export class ReservationService {
 
     private readonly openingHours: Hour[] = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 
+    // In-memory store for demo purposes only.
     private reservations: Reservation[] = [];
 
     create(createReservationDto: CreateReservationDto) {
+        this.usersService.findCertainUser(createReservationDto.userId);
+
         this.restaurantsService.findCertainTableInRestaurant(
             createReservationDto.restaurantId,
             createReservationDto.tableId,
         );
+
+        const userAlreadyHasReservation = this.userHasActiveReservationForSlot(
+            createReservationDto.userId,
+            createReservationDto.restaurantId,
+            createReservationDto.tableId,
+            createReservationDto.reservationDate,
+            createReservationDto.slotHour,
+        );
+
+        if (userAlreadyHasReservation) {
+            throw new ConflictException('User already has an active reservation for this slot');
+        }
 
         const isAvailable = this.isSlotAvailable(
             createReservationDto.restaurantId,
@@ -66,11 +81,13 @@ export class ReservationService {
     }
 
     findActiveReservationsForTableOnDate(
+        restaurantId: number,
         tableId: number,
         reservationDate: string,
     ) {
         return this.reservations.filter((reservation) => {
             return (
+                reservation.restaurantId === restaurantId &&
                 reservation.tableId === tableId &&
                 reservation.reservationDate === reservationDate &&
                 reservation.status === 'ACTIVE'
@@ -91,6 +108,7 @@ export class ReservationService {
         }, {} as HourAvailability);
 
         const activeReservations = this.findActiveReservationsForTableOnDate(
+            restaurantId,
             tableId,
             reservationDate,
         );

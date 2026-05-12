@@ -34,7 +34,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
 
   const [message, setMessage] = useState<string | null>(null);
-  const [bookingInProgress, setBookingInProgress] = useState(false);
+  const [actionInProgress, setActionInProgress] = useState(false);
 
   const [canSeeAdvancedWaitlist, setCanSeeAdvancedWaitlist] = useState(false);
 
@@ -141,6 +141,7 @@ function App() {
     setSelectedTableId(null);
     setSelectedHour(null);
     setAvailability(null);
+    setSelectedSlotWaitlistEntries([]);
     setMessage(null);
     setError(null);
   }
@@ -158,10 +159,9 @@ function App() {
     setSelectedHour(hour);
 
     try {
-      setBookingInProgress(true);
+      setActionInProgress(true);
       setMessage(null);
       setError(null);
-      setSelectedHour(hour);
 
       await createWaitlistEntry({
         userId: selectedUser.id,
@@ -184,7 +184,7 @@ function App() {
         setMessage("Could not join waitlist");
       }
     } finally {
-      setBookingInProgress(false);
+      setActionInProgress(false);
     }
   }
 
@@ -194,7 +194,7 @@ function App() {
     }
 
     try {
-      setBookingInProgress(true);
+      setActionInProgress(true);
       setMessage(null);
       setError(null);
 
@@ -226,7 +226,7 @@ function App() {
         setMessage("Could not create reservation");
       }
     } finally {
-      setBookingInProgress(false);
+      setActionInProgress(false);
     }
   }
 
@@ -237,7 +237,7 @@ function App() {
 
   async function handleCancelReservation(reservationId: number) {
     try {
-      setBookingInProgress(true);
+      setActionInProgress(true);
       setMessage(null);
       setError(null);
 
@@ -270,7 +270,7 @@ function App() {
         setMessage("Could not cancel reservation");
       }
     } finally {
-      setBookingInProgress(false);
+      setActionInProgress(false);
     }
   }
 
@@ -401,9 +401,9 @@ function App() {
         </div>
       )}
 
-      {bookingInProgress && (
+      {actionInProgress && (
         <div style={{ marginBottom: "16px" }}>
-          Creating reservation...
+          Processing request...
         </div>
       )}
 
@@ -421,6 +421,7 @@ function App() {
             setSelectedTableId(tableId);
             setSelectedHour(null);
             setAvailability(null);
+            setSelectedSlotWaitlistEntries([]);
             setMessage(null);
           }}
         />
